@@ -27,11 +27,13 @@ import logging
 
 class PersonTracker:
     def __init__(self, 
+                 camera_id: int = 0,
                  database_path: str = "./database",
                  update_interval: int = 300,  # 5 minutes in seconds
                  similarity_threshold: float = 0.6,
                  min_face_size: Tuple[int, int] = (50, 50),
-                 detection_confidence: float = 0.8):
+                 detection_confidence: float = 0.8,
+                 face_detection_model: str = "hog"):
         """
         Initialize the Person Tracker system.
         
@@ -73,7 +75,7 @@ class PersonTracker:
     def _initialize_camera(self):
         """Initialize the webcam."""
         try:
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(self.camera_id)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             
@@ -191,7 +193,7 @@ class PersonTracker:
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
         # Find face locations and encodings
-        face_locations = face_recognition.face_locations(rgb_frame, model="hog")
+        face_locations = face_recognition.face_locations(rgb_frame, model=self.face_detection_model)
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
         
         # Filter faces by minimum size
@@ -353,45 +355,7 @@ class PersonTracker:
         
         return stats
 
-def main():
-    """Main function to run the person tracking system."""
-    print("Person Detection and Tracking System")
-    print("===================================")
-    
-    # Configuration
-    config = {
-        'database_path': './database',
-        'update_interval': 300,  # 5 minutes
-        'similarity_threshold': 0.6,
-        'min_face_size': (50, 50),
-        'detection_confidence': 0.8
-    }
-    
-    try:
-        # Initialize tracker
-        tracker = PersonTracker(**config)
-        
-        # Display configuration
-        print(f"Database Path: {config['database_path']}")
-        print(f"Update Interval: {config['update_interval']} seconds")
-        print(f"Similarity Threshold: {config['similarity_threshold']}")
-        print("\nStarting tracking... Press 'q' in the video window to quit.")
-        
-        # Start tracking
-        tracker.start_tracking(show_preview=True)
-        
-        # Display final statistics
-        stats = tracker.get_statistics()
-        print(f"\nFinal Statistics:")
-        print(f"Total Persons Tracked: {stats['total_persons']}")
-        for person_id, data in stats['persons'].items():
-            print(f"  {person_id}: {data['total_images']} images")
-    
-    except Exception as e:
-        print(f"Error: {e}")
-        return 1
-    
-    return 0
+def main():    """Main function to run the person tracking system."""    parser = argparse.ArgumentParser(description="Real-Time Person Detection and Tracking System.")    parser.add_argument("--camera_id", type=int, default=0, help="ID of the webcam to use.")    parser.add_argument("--database_path", type=str, default="./database", help="Path to store person folders.")    parser.add_argument("--update_interval", type=int, default=300, help="Time in seconds between image updates for same person.")    parser.add_argument("--similarity_threshold", type=float, default=0.6, help="Face similarity threshold (lower = more strict).")    parser.add_argument("--min_face_size", type=str, default="(50, 50)", help="Minimum face size to detect (width, height) e.g., "(50, 50)".")    parser.add_argument("--detection_confidence", type=float, default=0.8, help="Minimum confidence for face detection.")    parser.add_argument("--face_detection_model", type=str, default="hog", choices=["hog", "cnn"], help="Face detection model to use ('hog' or 'cnn').")    parser.add_argument("--no_preview", action="store_true", help="Do not show the real-time video preview.")    args = parser.parse_args()    # Convert min_face_size string to tuple    try:        min_face_size_tuple = tuple(map(int, args.min_face_size.strip('()').split(',')))        if len(min_face_size_tuple) != 2:            raise ValueError    except ValueError:        print(f"Error: Invalid format for --min_face_size. Please use "(width, height)" (e.g., "(50, 50)").")        return 1    print("Person Detection and Tracking System")    print("===================================")        try:        tracker = PersonTracker(            camera_id=args.camera_id,            database_path=args.database_path,            update_interval=args.update_interval,            similarity_threshold=args.similarity_threshold,            min_face_size=min_face_size_tuple,            detection_confidence=args.detection_confidence,            face_detection_model=args.face_detection_model        )                print(f"Database Path: {args.database_path}")        print(f"Update Interval: {args.update_interval} seconds")        print(f"Similarity Threshold: {args.similarity_threshold}")        print(f"Min Face Size: {min_face_size_tuple}")        print(f"Detection Confidence: {args.detection_confidence}")        print(f"Face Detection Model: {args.face_detection_model}")        print("\nStarting tracking... Press 'q' in the video window to quit.")                tracker.start_tracking(show_preview=not args.no_preview)                stats = tracker.get_statistics()        print(f"\nFinal Statistics:")        print(f"Total Persons Tracked: {stats['total_persons']}")        for person_id, data in stats['persons'].items():            print(f"  {person_id}: {data['total_images']} images")        except Exception as e:        print(f"Error: {e}")        return 1        return 0
 
 if __name__ == "__main__":
     exit(main())
