@@ -15,14 +15,6 @@ A privacy-focused, real-time person detection and tracking system that uses your
 
 ---
 
-## 🚀 Demo
-
-*(This is a placeholder. You can replace this with a GIF or video of your project in action.)*
-
-![Demo Placeholder](https://i.imgur.com/gJ7eD9b.gif)
-
----
-
 ## 🛠️ Installation
 
 **1. Clone the repository:**
