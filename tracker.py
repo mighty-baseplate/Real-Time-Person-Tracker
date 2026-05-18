@@ -15,6 +15,7 @@ Requirements:
 Install with: pip install opencv-python face-recognition numpy pillow
 """
 
+import argparse
 import cv2
 import face_recognition
 import numpy as np
@@ -44,11 +45,13 @@ class PersonTracker:
             min_face_size: Minimum face size to detect (width, height)
             detection_confidence: Minimum confidence for face detection
         """
+        self.camera_id = camera_id
         self.database_path = database_path
         self.update_interval = update_interval
         self.similarity_threshold = similarity_threshold
         self.min_face_size = min_face_size
         self.detection_confidence = detection_confidence
+        self.face_detection_model = face_detection_model
         
         # Initialize tracking variables
         self.known_faces = []
